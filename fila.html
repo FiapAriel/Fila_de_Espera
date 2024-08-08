@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"> <!-- Define o conjunto de caracteres como UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Define a viewport para layout responsivo -->
+    <title>Fila de Espera</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Define a fonte usada na página */
+            background-color: #f7f9fc; /* Define a cor de fundo da página */
+            color: #333; /* Define a cor do texto */
+            display: flex; /* Usa flexbox para alinhar itens */
+            justify-content: center; /* Centraliza itens horizontalmente */
+            align-items: center; /* Centraliza itens verticalmente */
+            height: 100vh; /* Define a altura da página como 100% da altura da janela */
+            margin: 0; /* Remove margens padrão */
+            padding: 10px; /* Adiciona padding para evitar que o conteúdo encoste nas bordas */
+        }
+        .container {
+            background: #fff; /* Define a cor de fundo do contêiner */
+            padding: 20px; /* Define o preenchimento interno do contêiner */
+            border-radius: 8px; /* Define cantos arredondados para o contêiner */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adiciona uma sombra ao contêiner */
+            width: 100%; /* Define a largura do contêiner como 100% */
+            max-width: 500px; /* Define a largura máxima do contêiner */
+            text-align: center; /* Centraliza o texto dentro do contêiner */
+        }
+        h1 {
+            font-size: 24px; /* Define o tamanho da fonte do título */
+            margin-bottom: 20px; /* Adiciona um espaço abaixo do título */
+            color: #4a90e2; /* Define a cor do título */
+        }
+        #filaContainer {
+            max-height: 300px; /* Define a altura máxima do contêiner de clientes */
+            overflow-y: auto; /* Adiciona barra de rolagem vertical quando necessário */
+        }
+        #fila {
+            list-style-type: none; /* Remove marcadores da lista */
+            padding: 0; /* Remove preenchimento da lista */
+        }
+        #fila li {
+            padding: 10px; /* Define o preenchimento interno dos itens da lista */
+            background: #eef1f5; /* Define a cor de fundo dos itens */
+            margin-bottom: 5px; /* Adiciona um espaço abaixo dos itens */
+            border-radius: 4px; /* Define cantos arredondados para os itens */
+            display: flex; /* Usa flexbox para alinhar itens */
+            justify-content: space-between; /* Distribui o espaço entre os itens */
+            align-items: center; /* Alinha itens verticalmente */
+        }
+        .cliente-info {
+            flex: 1; /* Faz o item crescer para ocupar o espaço disponível */
+            text-align: left; /* Alinha o texto à esquerda */
+        }
+        .actions {
+            display: flex; /* Usa flexbox para alinhar itens */
+        }
+        .actions button {
+            margin-left: 10px; /* Adiciona um espaço à esquerda dos botões */
+            padding: 5px; /* Define o preenchimento interno dos botões */
+            cursor: pointer; /* Altera o cursor para uma mão ao passar sobre os botões */
+            border: none; /* Remove as bordas dos botões */
+            border-radius: 4px; /* Define cantos arredondados para os botões */
+            color: white; /* Define a cor do texto dos botões */
+        }
+        .remove-btn {
+            background-color: #e74c3c; /* Define a cor de fundo dos botões de remover */
+        }
+        .remove-btn:hover {
+            background-color: #c0392b; /* Altera a cor de fundo ao passar o cursor sobre os botões de remover */
+        }
+        .call-btn {
+            background-color: #4a90e2; /* Define a cor de fundo dos botões de chamar */
+        }
+        .call-btn:hover {
+            background-color: #357ab7; /* Altera a cor de fundo ao passar o cursor sobre os botões de chamar */
+        }
+        button {
+            width: calc(50% - 10px); /* Define a largura dos botões */
+            padding: 10px; /* Define o preenchimento interno dos botões */
+            margin: 5px; /* Adiciona um espaço ao redor dos botões */
+            border: none; /* Remove as bordas dos botões */
+            border-radius: 4px; /* Define cantos arredondados para os botões */
+            background-color: #4a90e2; /* Define a cor de fundo dos botões */
+            color: white; /* Define a cor do texto dos botões */
+            cursor: pointer; /* Altera o cursor para uma mão ao passar sobre os botões */
+        }
+        button:hover {
+            background-color: #357ab7; /* Altera a cor de fundo ao passar o cursor sobre os botões */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fila de Espera</h1>
+        <div id="filaContainer">
+            <!-- Lista para exibir a fila de espera -->
+            <ul id="fila"></ul>
+        </div>
+        <!-- Botões para navegação -->
+        <button onclick="irParaCadastro()">Cadastrar Novo Cliente</button>
+        <button onclick="voltar()">Voltar</button>
+    </div>
+
+    <script>
+        let fila = JSON.parse(localStorage.getItem('fila')) || []; // Obtém os dados da fila do localStorage ou inicializa um array vazio
+        let clientes = JSON.parse(localStorage.getItem('clientes')) || []; // Obtém os dados dos clientes do localStorage ou inicializa um array vazio
+
+        // Função para remover um cliente da fila
+        function removerCliente(index) {
+            fila.splice(index, 1); // Remove o cliente da fila
+            localStorage.setItem('fila', JSON.stringify(fila)); // Atualiza os dados da fila no localStorage
+            atualizarFila(); // Atualiza a exibição da fila
+        }
+
+        // Função para chamar um cliente (remover da fila e incrementar visitas)
+        function chamarCliente(index) {
+            const cliente = fila.splice(index, 1)[0]; // Remove o cliente da fila e obtém seus dados
+            const clienteCadastrado = clientes.find(c => c.telefone === cliente.telefone); // Encontra o cliente cadastrado pelo telefone
+            if (clienteCadastrado) {
+                clienteCadastrado.visitas = (clienteCadastrado.visitas || 0) + 1; // Incrementa o número de visitas do cliente
+                localStorage.setItem('clientes', JSON.stringify(clientes)); // Atualiza os dados dos clientes no localStorage
+            }
+            localStorage.setItem('fila', JSON.stringify(fila)); // Atualiza os dados da fila no localStorage
+            atualizarFila(); // Atualiza a exibição da fila
+        }
+
+        // Função para atualizar a exibição da fila
+        function atualizarFila() {
+            const filaList = document.getElementById('fila'); // Obtém o elemento da lista da fila
+            filaList.innerHTML = ''; // Limpa a lista da fila
+            fila.forEach((cliente, index) => { // Itera sobre cada cliente na fila
+                const li = document.createElement('li'); // Cria um novo item da lista
+                li.innerHTML = `
+                    <span class="cliente-info">${capitalize(cliente.nome.split(' ')[0])} - ${cliente.pessoas} Pessoas - Pager: ${cliente.pager}</span> <!-- Exibe as informações do cliente -->
+                    <div class="actions">
+                        <button class="call-btn" onclick="chamarCliente(${index})">Chamar</button> <!-- Botão para chamar o cliente -->
+                        <button class="remove-btn" onclick="removerCliente(${index})">Remover</button> <!-- Botão para remover o cliente -->
+                    </div>
+                `;
+                filaList.appendChild(li); // Adiciona o item à lista da fila
+            });
+        }
+
+        // Função para redirecionar para a página de cadastro
+        function irParaCadastro() {
+            window.location.href = "cadastro.html";
+        }
+
+        // Função para voltar para a página inicial
+        function voltar() {
+            window.location.href = "index.html";
+        }
+
+        // Função para capitalizar a primeira letra de uma string
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase(); // Capitaliza a primeira letra e transforma o restante em minúsculas
+        }
+
+        // Atualiza a exibição da fila quando a página é carregada
+        window.onload = atualizarFila;
+    </script>
+</body>
+</html>

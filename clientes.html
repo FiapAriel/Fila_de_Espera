@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"> <!-- Define o conjunto de caracteres como UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Define a viewport para layout responsivo -->
+    <title>Clientes Cadastrados</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Define a fonte usada na página */
+            background-color: #f7f9fc; /* Define a cor de fundo da página */
+            color: #333; /* Define a cor do texto */
+            display: flex; /* Usa flexbox para alinhar itens */
+            justify-content: center; /* Centraliza itens horizontalmente */
+            align-items: center; /* Centraliza itens verticalmente */
+            height: 100vh; /* Define a altura da página como 100% da altura da janela */
+            margin: 0; /* Remove margens padrão */
+            padding: 10px; /* Adiciona padding para evitar que o conteúdo encoste nas bordas */
+        }
+        .container {
+            background: #fff; /* Define a cor de fundo do contêiner */
+            padding: 20px; /* Define o preenchimento interno do contêiner */
+            border-radius: 8px; /* Define cantos arredondados para o contêiner */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adiciona uma sombra ao contêiner */
+            width: 100%; /* Define a largura do contêiner como 100% */
+            max-width: 800px; /* Define a largura máxima do contêiner */
+            text-align: center; /* Centraliza o texto dentro do contêiner */
+        }
+        h1 {
+            font-size: 24px; /* Define o tamanho da fonte do título */
+            margin-bottom: 20px; /* Adiciona um espaço abaixo do título */
+            color: #4a90e2; /* Define a cor do título */
+        }
+        button {
+            width: calc(100% - 22px); /* Define a largura dos botões */
+            padding: 10px; /* Define o preenchimento interno dos botões */
+            margin: 5px 0; /* Adiciona um espaço ao redor dos botões */
+            border: none; /* Remove as bordas dos botões */
+            border-radius: 4px; /* Define cantos arredondados para os botões */
+            background-color: #4a90e2; /* Define a cor de fundo dos botões */
+            color: white; /* Define a cor do texto dos botões */
+            cursor: pointer; /* Altera o cursor para uma mão ao passar sobre os botões */
+        }
+        button:hover {
+            background-color: #357ab7; /* Altera a cor de fundo ao passar o cursor sobre os botões */
+        }
+        #clientesContainer {
+            max-height: 300px; /* Define a altura máxima do contêiner de clientes */
+            overflow-y: auto; /* Adiciona barra de rolagem vertical quando necessário */
+        }
+        table {
+            width: 100%; /* Define a largura da tabela */
+            border-collapse: collapse; /* Colapsa bordas da tabela */
+            margin-top: 10px; /* Adiciona um espaço acima da tabela */
+        }
+        table, th, td {
+            border: 1px solid #ddd; /* Define a cor e a largura das bordas */
+        }
+        th, td {
+            padding: 8px; /* Define o preenchimento interno das células */
+            text-align: left; /* Alinha o texto à esquerda */
+        }
+        th {
+            background-color: #f2f2f2; /* Define a cor de fundo das células do cabeçalho */
+        }
+        .edit-btn, .delete-btn {
+            cursor: pointer; /* Altera o cursor para uma mão ao passar sobre os botões */
+            color: white; /* Define a cor do texto dos botões */
+            padding: 5px 10px; /* Define o preenchimento interno dos botões */
+            border-radius: 4px; /* Define cantos arredondados para os botões */
+            border: none; /* Remove as bordas dos botões */
+        }
+        .edit-btn {
+            background-color: #4a90e2; /* Define a cor de fundo dos botões de editar */
+        }
+        .edit-btn:hover {
+            background-color: #357ab7; /* Altera a cor de fundo ao passar o cursor sobre os botões de editar */
+        }
+        .delete-btn {
+            background-color: #e74c3c; /* Define a cor de fundo dos botões de remover */
+        }
+        .delete-btn:hover {
+            background-color: #c0392b; /* Altera a cor de fundo ao passar o cursor sobre os botões de remover */
+        }
+        .back-btn {
+            width: calc(50% - 10px); /* Define a largura dos botões */
+            padding: 10px; /* Define o preenchimento interno dos botões */
+            margin: 5px 5px; /* Adiciona um espaço ao redor dos botões */
+            border: none; /* Remove as bordas dos botões */
+            border-radius: 4px; /* Define cantos arredondados para os botões */
+            background-color: #4a90e2; /* Define a cor de fundo dos botões */
+            color: white; /* Define a cor do texto dos botões */
+            cursor: pointer; /* Altera o cursor para uma mão ao passar sobre os botões */
+        }
+        .back-btn:hover {
+            background-color: #357ab7; /* Altera a cor de fundo ao passar o cursor sobre os botões */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Clientes Cadastrados</h1>
+        <div id="clientesContainer">
+            <!-- Tabela para exibir clientes cadastrados -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Telefone</th>
+                        <th>CPF</th>
+                        <th>Visitas</th>
+                        <th id="acoesHeader">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="clientes">
+                </tbody>
+            </table>
+        </div>
+        <!-- Botão para voltar para a página inicial -->
+        <button onclick="voltar()" class="back-btn">Voltar</button>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search); // Obtém os parâmetros da URL
+        const isAdmin = urlParams.get('admin') === 'true'; // Verifica se o usuário é administrador
+        
+        document.getElementById('acoesHeader').style.display = isAdmin ? 'table-cell' : 'none'; // Exibe ou oculta a coluna de ações
+
+        // Função para exibir os clientes cadastrados
+        function exibirClientes() {
+            const clientes = JSON.parse(localStorage.getItem('clientes')) || []; // Obtém a lista de clientes do localStorage ou inicializa um array vazio
+            const clientesList = document.getElementById('clientes'); // Obtém o elemento da tabela de clientes
+            clientesList.innerHTML = ''; // Limpa o conteúdo da tabela
+            clientes.forEach((cliente, index) => { // Itera sobre cada cliente na lista
+                const tr = document.createElement('tr'); // Cria uma nova linha na tabela
+                tr.innerHTML = `
+                    <td>${cliente.id}</td>
+                    <td>${cliente.nome}</td>
+                    <td>${cliente.telefone}</td>
+                    <td>${cliente.cpf}</td>
+                    <td>${cliente.visitas}</td>
+                    ${isAdmin ? `
+                    <td>
+                        <button class="edit-btn" onclick="editarCliente(${index})">Editar</button> <!-- Botão para editar o cliente -->
+                        <button class="delete-btn" onclick="removerCliente(${index})">Remover</button> <!-- Botão para remover o cliente -->
+                    </td>` : `<td style="display:none;"></td>`}
+                `;
+                clientesList.appendChild(tr); // Adiciona a linha à tabela
+            });
+        }
+
+        // Função para remover um cliente
+        function removerCliente(index) {
+            if (confirm('Tem certeza que deseja remover este cliente?')) { // Exibe uma confirmação antes de remover o cliente
+                let clientes = JSON.parse(localStorage.getItem('clientes')) || []; // Obtém a lista de clientes do localStorage ou inicializa um array vazio
+                clientes.splice(index, 1); // Remove o cliente da lista
+                localStorage.setItem('clientes', JSON.stringify(clientes)); // Salva a lista atualizada no localStorage
+                exibirClientes(); // Atualiza a exibição dos clientes
+            }
+        }
+
+        // Função para editar um cliente
+        function editarCliente(index) {
+            let clientes = JSON.parse(localStorage.getItem('clientes')) || []; // Obtém a lista de clientes do localStorage ou inicializa um array vazio
+            const cliente = clientes[index]; // Obtém os dados do cliente
+            const nome = prompt("Editar Nome:", cliente.nome); // Solicita o novo nome
+            const telefone = prompt("Editar Telefone:", cliente.telefone); // Solicita o novo telefone
+            const cpf = prompt("Editar CPF:", cliente.cpf); // Solicita o novo CPF
+            if (nome && telefone.length === 11 && (!cpf || (cpf === cliente.cpf || (validarCPF(cpf) && !clientes.some(c => c.cpf === cpf))))) {
+                clientes[index] = { ...cliente, nome, telefone, cpf }; // Atualiza os dados do cliente
+                localStorage.setItem('clientes', JSON.stringify(clientes)); // Salva a lista atualizada no localStorage
+                exibirClientes(); // Atualiza a exibição dos clientes
+            } else {
+                alert("Por favor, insira dados válidos."); // Exibe uma mensagem de erro se os dados forem inválidos
+            }
+        }
+
+        // Função para validar o CPF
+        function validarCPF(cpf) {
+            cpf = cpf.replace(/[^\d]+/g, ''); // Remove caracteres não numéricos
+            if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false; // Verifica se o CPF tem 11 dígitos e se não é uma sequência repetida
+            let soma = 0;
+            for (let i = 0; i < 9; i++) soma += parseInt(cpf.charAt(i)) * (10 - i); // Calcula a soma dos 9 primeiros dígitos
+            let resto = 11 - (soma % 11);
+            if (resto === 10 || resto === 11) resto = 0; // Ajusta o resto se necessário
+            if (resto !== parseInt(cpf.charAt(9))) return false; // Verifica o primeiro dígito verificador
+            soma = 0;
+            for (let i = 0; i < 10; i++) soma += parseInt(cpf.charAt(i)) * (11 - i); // Calcula a soma dos 10 primeiros dígitos
+            resto = 11 - (soma % 11);
+            if (resto === 10 || resto === 11) resto = 0; // Ajusta o resto se necessário
+            return resto === parseInt(cpf.charAt(10)); // Verifica o segundo dígito verificador
+        }
+
+        // Função para voltar para a página inicial
+        function voltar() {
+            window.location.href = "index.html";
+        }
+
+        // Atualiza a exibição dos clientes quando a página é carregada
+        window.onload = exibirClientes;
+    </script>
+</body>
+</html>

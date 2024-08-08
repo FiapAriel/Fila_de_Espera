@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"> <!-- Define o conjunto de caracteres como UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Define a viewport para layout responsivo -->
+    <title>Cadastro de Clientes</title>
+    <style>
+        /* Define a fonte padrão, cor de fundo e alinhamento do corpo da página */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Define a fonte usada na página */
+            background-color: #f7f9fc; /* Define a cor de fundo da página */
+            color: #333; /* Define a cor do texto */
+            display: flex; /* Usa flexbox para alinhar itens */
+            justify-content: center; /* Centraliza itens horizontalmente */
+            align-items: center; /* Centraliza itens verticalmente */
+            height: 100vh; /* Define a altura da página como 100% da altura da janela */
+            margin: 0; /* Remove margens padrão */
+        }
+        /* Define a aparência do contêiner principal */
+        .container {
+            background: #fff; /* Define a cor de fundo do contêiner */
+            padding: 20px 40px; /* Define o preenchimento interno do contêiner */
+            border-radius: 8px; /* Define cantos arredondados para o contêiner */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adiciona uma sombra ao contêiner */
+            width: 350px; /* Define a largura do contêiner */
+            text-align: center; /* Centraliza o texto dentro do contêiner */
+        }
+        /* Define a aparência do título */
+        h1 {
+            font-size: 24px; /* Define o tamanho da fonte do título */
+            margin-bottom: 20px; /* Adiciona um espaço abaixo do título */
+            color: #4a90e2; /* Define a cor do título */
+        }
+        /* Define a aparência dos campos de entrada de texto e número */
+        input[type="text"], input[type="number"] {
+            width: calc(100% - 22px); /* Define a largura dos campos */
+            padding: 10px; /* Define o preenchimento interno dos campos */
+            margin-bottom: 10px; /* Adiciona um espaço abaixo dos campos */
+            border: 1px solid #ddd; /* Define a borda dos campos */
+            border-radius: 4px; /* Define cantos arredondados para os campos */
+        }
+        /* Define a aparência dos botões */
+        button {
+            width: calc(50% - 10px); /* Define a largura dos botões */
+            padding: 10px; /* Define o preenchimento interno dos botões */
+            margin: 5px; /* Adiciona um espaço ao redor dos botões */
+            border: none; /* Remove a borda dos botões */
+            border-radius: 4px; /* Define cantos arredondados para os botões */
+            background-color: #4a90e2; /* Define a cor de fundo dos botões */
+            color: white; /* Define a cor do texto dos botões */
+            cursor: pointer; /* Altera o cursor para uma mão ao passar sobre os botões */
+        }
+        /* Define a aparência dos botões ao passar o cursor sobre eles */
+        button:hover {
+            background-color: #357ab7; /* Altera a cor de fundo ao passar o cursor sobre os botões */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cadastro de Clientes</h1>
+        <!-- Campo de entrada para o telefone do cliente -->
+        <input type="text" id="telefone" placeholder="Telefone (11 dígitos)" inputmode="numeric" pattern="[0-9]*">
+        <!-- Botão para verificar se o cliente já está cadastrado -->
+        <button onclick="verificarCliente()">Verificar</button>
+        
+        <!-- Formulário para cadastro de um novo cliente -->
+        <div id="formCadastro" style="display: none;">
+            <!-- Campo de entrada para o nome do cliente -->
+            <input type="text" id="cliente" placeholder="Nome do Cliente">
+            <!-- Campo de entrada para o CPF do cliente (opcional) -->
+            <input type="text" id="cpf" placeholder="CPF (opcional)" inputmode="numeric" pattern="[0-9]*">
+            <!-- Botão para cadastrar o cliente -->
+            <button onclick="adicionarCliente()">Cadastrar</button>
+        </div>
+
+        <!-- Formulário para confirmar e adicionar um cliente existente à fila -->
+        <div id="confirmarCliente" style="display: none;">
+            <!-- Mensagem para confirmar detalhes do cliente -->
+            <p id="mensagemCliente"></p>
+            <!-- Campo de entrada para o número de pessoas na reserva -->
+            <input type="number" id="pessoas" placeholder="Número de Pessoas" min="1" max="10">
+            <!-- Campo de entrada para o número do pager -->
+            <input type="text" id="pager" placeholder="Pager" inputmode="numeric" pattern="[0-9]*">
+            <!-- Botão para adicionar o cliente à fila -->
+            <button onclick="adicionarFila()">Adicionar à Fila</button>
+        </div>
+        
+        <!-- Botões de navegação -->
+        <button onclick="irParaFila()">Ver Fila</button>
+        <button onclick="irParaClientes()">Ver Clientes</button>
+        <button onclick="voltar()">Voltar</button>
+    </div>
+
+    <script>
+        // Carrega os dados dos clientes e da fila salvos no localStorage ou inicia com arrays vazios
+        let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+        let fila = JSON.parse(localStorage.getItem('fila')) || [];
+        let clienteAtual = null; // Variável para armazenar o cliente atual
+
+        // Função para verificar se o cliente já está cadastrado
+        function verificarCliente() {
+            const telefoneInput = document.getElementById('telefone').value; // Obtém o valor do campo de telefone
+            clienteAtual = clientes.find(cliente => cliente.telefone === telefoneInput); // Procura o cliente pelo telefone
+
+            if (clienteAtual) {
+                // Se o cliente for encontrado, exibe a mensagem de confirmação e o formulário de confirmação
+                document.getElementById('mensagemCliente').innerText = `Cliente encontrado: ${clienteAtual.nome}. Visitas: ${clienteAtual.visitas || 0}. Por favor, confirme.`;
+                document.getElementById('confirmarCliente').style.display = 'block';
+                document.getElementById('formCadastro').style.display = 'none';
+            } else {
+                // Se o cliente não for encontrado, exibe o formulário de cadastro
+                document.getElementById('confirmarCliente').style.display = 'none';
+                document.getElementById('formCadastro').style.display = 'block';
+            }
+        }
+
+        // Função para adicionar um novo cliente
+        function adicionarCliente() {
+            const nomeCliente = document.getElementById('cliente').value; // Obtém o valor do campo de nome
+            const telefoneCliente = document.getElementById('telefone').value; // Obtém o valor do campo de telefone
+            const cpfCliente = document.getElementById('cpf').value; // Obtém o valor do campo de CPF
+
+            if (nomeCliente && telefoneCliente.length === 11) {
+                // Verifica se o CPF é válido e se já está cadastrado
+                if (cpfCliente && !validarCPF(cpfCliente)) {
+                    alert("CPF inválido."); // Exibe mensagem de erro se o CPF for inválido
+                    return;
+                }
+
+                if (cpfCliente && clientes.some(cliente => cliente.cpf === cpfCliente)) {
+                    alert("Este CPF já está cadastrado."); // Exibe mensagem de erro se o CPF já estiver cadastrado
+                    return;
+                }
+
+                // Cria um novo objeto de cliente
+                clienteAtual = {
+                    id: gerarIdUnico(), // Gera um ID único
+                    nome: nomeCliente, // Define o nome do cliente
+                    telefone: telefoneCliente, // Define o telefone do cliente
+                    cpf: cpfCliente || '', // Define o CPF do cliente (opcional)
+                    visitas: 0 // Inicializa o contador de visitas
+                };
+                clientes.push(clienteAtual); // Adiciona o cliente à lista de clientes
+                localStorage.setItem('clientes', JSON.stringify(clientes)); // Salva a lista de clientes no localStorage
+
+                // Limpa os campos de entrada e atualiza a exibição do formulário
+                document.getElementById('cliente').value = '';
+                document.getElementById('cpf').value = '';
+                document.getElementById('formCadastro').style.display = 'none';
+                document.getElementById('confirmarCliente').style.display = 'block';
+                document.getElementById('mensagemCliente').innerText = `Cliente ${nomeCliente} cadastrado com sucesso! Por favor, confirme.`;
+            } else {
+                alert("Por favor, preencha todos os campos obrigatórios corretamente."); // Exibe mensagem de erro se algum campo obrigatório estiver vazio
+            }
+        }
+
+        // Função para adicionar um cliente à fila de espera
+        function adicionarFila() {
+            const numeroPessoas = document.getElementById('pessoas').value; // Obtém o valor do campo de número de pessoas
+            const pager = document.getElementById('pager').value; // Obtém o valor do campo de pager
+
+            // Verifica se o cliente ou o pager já estão na fila
+            const clienteNaFila = fila.find(cliente => cliente.telefone === clienteAtual.telefone);
+            const pagerNaFila = fila.find(cliente => cliente.pager === pager);
+
+            if (clienteNaFila) {
+                alert("Este cliente já está na fila."); // Exibe mensagem de erro se o cliente já estiver na fila
+                return;
+            }
+
+            if (pagerNaFila) {
+                alert("Este pager já está em uso."); // Exibe mensagem de erro se o pager já estiver em uso
+                return;
+            }
+
+            if (numeroPessoas && pager) {
+                // Adiciona o cliente à fila
+                fila.push({
+                    ...clienteAtual, // Inclui os dados do cliente atual
+                    pessoas: numeroPessoas, // Define o número de pessoas
+                    pager: pager // Define o pager
+                });
+                localStorage.setItem('fila', JSON.stringify(fila)); // Salva a fila no localStorage
+
+                // Limpa os campos de entrada e exibe mensagem de sucesso
+                document.getElementById('pessoas').value = '';
+                document.getElementById('pager').value = '';
+                alert("Cliente adicionado à fila com sucesso!");
+                window.location.href = "fila.html"; // Redireciona para a página da fila
+            } else {
+                alert("Por favor, preencha todos os campos."); // Exibe mensagem de erro se algum campo obrigatório estiver vazio
+            }
+        }
+
+        // Função para gerar um ID único
+        function gerarIdUnico() {
+            return 'ID' + Math.random().toString(36).substr(2, 9); // Gera um ID aleatório
+        }
+
+        // Função para redirecionar para a página da fila de espera
+        function irParaFila() {
+            window.location.href = "fila.html";
+        }
+
+        // Função para redirecionar para a página de clientes cadastrados
+        function irParaClientes() {
+            window.location.href = "clientes.html";
+        }
+
+        // Função para voltar para a página inicial
+        function voltar() {
+            window.location.href = "index.html";
+        }
+
+        // Função para validar o CPF
+        function validarCPF(cpf) {
+            cpf = cpf.replace(/[^\d]+/g, ''); // Remove caracteres não numéricos
+            if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false; // Verifica se o CPF tem 11 dígitos e se não é uma sequência repetida
+            let soma = 0;
+            for (let i = 0; i < 9; i++) soma += parseInt(cpf.charAt(i)) * (10 - i); // Calcula a soma dos 9 primeiros dígitos
+            let resto = 11 - (soma % 11);
+            if (resto === 10 || resto === 11) resto = 0; // Ajusta o resto se necessário
+            if (resto !== parseInt(cpf.charAt(9))) return false; // Verifica o primeiro dígito verificador
+            soma = 0;
+            for (let i = 0; i < 10; i++) soma += parseInt(cpf.charAt(i)) * (11 - i); // Calcula a soma dos 10 primeiros dígitos
+            resto = 11 - (soma % 11);
+            if (resto === 10 || resto === 11) resto = 0; // Ajusta o resto se necessário
+            return resto === parseInt(cpf.charAt(10)); // Verifica o segundo dígito verificador
+        }
+    </script>
+</body>
+</html>
