@@ -5,64 +5,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Define a viewport para layout responsivo -->
     <title>Página Inicial</title>
     <style>
+        /* Estilo para o corpo da página, incluindo a imagem de fundo */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Define a fonte usada na página */
-            background-color: #f7f9fc; /* Define a cor de fundo da página */
-            color: #333; /* Define a cor do texto */
-            display: flex; /* Usa flexbox para alinhar itens */
-            justify-content: center; /* Centraliza itens horizontalmente */
-            align-items: center; /* Centraliza itens verticalmente */
-            height: 100vh; /* Define a altura da página como 100% da altura da janela */
-            margin: 0; /* Remove margens padrão */
-            padding: 10px; /* Adiciona padding para evitar que o conteúdo encoste nas bordas */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('.jpg'); /* Define a nova imagem de fundo */
+            background-size: cover; /* Faz com que a imagem de fundo cubra toda a área da página */
+            background-attachment: fixed; /* Fixa a imagem ao fundo, para que ela não se mova ao rolar a página */
+            background-position: center bottom; /* Posiciona a imagem mais para baixo */
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
+
+        /* Estilo para o cabeçalho fixo */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: rgba(50, 100, 150, 0.9);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        /* Estilo para o container principal */
         .container {
-            background: #fff; /* Define a cor de fundo do contêiner */
-            padding: 20px; /* Define o preenchimento interno do contêiner */
-            border-radius: 8px; /* Define cantos arredondados para o contêiner */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adiciona uma sombra ao contêiner */
-            width: 100%; /* Define a largura do contêiner como 100% */
-            max-width: 400px; /* Define a largura máxima do contêiner */
-            text-align: center; /* Centraliza o texto dentro do contêiner */
+            background: rgba(255, 255, 255, 0.85); /* Ajusta a transparência para melhor visibilidade da imagem de fundo */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            margin-top: 100px;
         }
+
+        /* Estilo para o título */
         h1 {
-            font-size: 24px; /* Define o tamanho da fonte do título */
-            margin-bottom: 20px; /* Adiciona um espaço abaixo do título */
-            color: #4a90e2; /* Define a cor do título */
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333; /* Altera a cor do título para um tom mais escuro */
         }
+
+        /* Estilo para o campo de entrada de senha */
         input[type="password"] {
-            width: calc(100% - 22px); /* Define a largura do campo de entrada */
-            padding: 10px; /* Define o preenchimento interno do campo */
-            margin-bottom: 10px; /* Adiciona um espaço abaixo do campo */
-            border: 1px solid #ddd; /* Define a cor e a largura das bordas */
-            border-radius: 4px; /* Define cantos arredondados para o campo */
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
+
+        /* Estilo para o container de senha */
         .senha-container {
-            margin-bottom: 10px; /* Adiciona um espaço abaixo do contêiner */
+            margin-bottom: 10px;
         }
+
+        /* Estilo para o input de senha */
         .senha-input {
-            width: 100%; /* Define a largura do campo de entrada */
-            max-width: 200px; /* Define a largura máxima do campo de entrada */
-            display: inline-block; /* Exibe o campo de entrada como inline-block */
+            width: 100%;
+            max-width: 200px;
+            display: inline-block;
         }
+
+        /* Estilo para os botões */
         button {
-            width: calc(100% - 22px); /* Define a largura dos botões */
-            padding: 10px; /* Define o preenchimento interno dos botões */
-            margin: 5px 0; /* Adiciona um espaço ao redor dos botões */
-            border: none; /* Remove as bordas dos botões */
-            border-radius: 4px; /* Define cantos arredondados para os botões */
-            background-color: #4a90e2; /* Define a cor de fundo dos botões */
-            color: white; /* Define a cor do texto dos botões */
-            cursor: pointer; /* Altera o cursor para uma mão ao passar sobre os botões */
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 4px;
+            background-color: #4a90e2;
+            color: white;
+            cursor: pointer;
         }
+
+        /* Estilo para os botões ao passar o cursor sobre eles */
         button:hover {
-            background-color: #357ab7; /* Altera a cor de fundo ao passar o cursor sobre os botões */
+            background-color: #357ab7;
         }
     </style>
 </head>
 <body>
+    <!-- Cabeçalho fixo -->
+    <header>
+        <h1>Fila de Espera da Lazzarella</h1> <!-- Título no cabeçalho fixo -->
+    </header>
+
+    <!-- Container principal -->
     <div class="container">
-        <h1>Página Inicial</h1>
+        <h1>Página Inicial</h1> <!-- Título dentro do container principal -->
         <div class="senha-container">
             <!-- Campo de entrada para a senha -->
             <input type="password" id="senha" placeholder="Digite a senha" class="senha-input">
@@ -70,32 +108,32 @@
             <button onclick="verificarSenha()">Ver Clientes Cadastrados</button>
         </div>
         <!-- Botões para navegar para outras páginas -->
-        <button onclick="irParaCadastro()">Incluir Cliente na Fila</button>
-        <button onclick="irParaFila()">Ver Fila de Espera</button>
+        <button onclick="irParaCadastro()">Incluir Cliente na Fila</button> <!-- Botão para ir para a página de cadastro -->
+        <button onclick="irParaFila()">Ver Fila de Espera</button> <!-- Botão para ir para a página da fila de espera -->
     </div>
 
     <script>
         // Define a senha correta
-        const senhaCorreta = 'admin123';
+        const senhaCorreta = 'admin123'; // Variável que armazena a senha correta para acesso
 
         // Função para verificar a senha e redirecionar para a página de clientes cadastrados
         function verificarSenha() {
-            const senhaInput = document.getElementById('senha').value; // Obtém o valor da senha digitada
-            if (senhaInput === senhaCorreta) {
-                window.location.href = "clientes.html?admin=true"; // Redireciona com parâmetro admin se a senha estiver correta
+            const senhaInput = document.getElementById('senha').value; // Obtém o valor da senha digitada no input
+            if (senhaInput === senhaCorreta) { // Verifica se a senha digitada é igual à senha correta
+                window.location.href = "clientes.html?admin=true"; // Redireciona para a página de clientes cadastrados com parâmetro admin
             } else {
-                window.location.href = "clientes.html"; // Redireciona sem parâmetro admin se a senha estiver incorreta
+                window.location.href = "clientes.html"; // Redireciona para a página de clientes cadastrados sem o parâmetro admin
             }
         }
 
         // Função para redirecionar para a página de cadastro
         function irParaCadastro() {
-            window.location.href = "cadastro.html";
+            window.location.href = "cadastro.html"; // Redireciona para a página de cadastro de clientes
         }
 
         // Função para redirecionar para a página da fila de espera
         function irParaFila() {
-            window.location.href = "fila.html";
+            window.location.href = "fila.html"; // Redireciona para a página da fila de espera
         }
     </script>
 </body>

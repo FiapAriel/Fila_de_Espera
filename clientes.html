@@ -30,6 +30,17 @@
             margin-bottom: 20px; /* Adiciona um espaço abaixo do título */
             color: #4a90e2; /* Define a cor do título */
         }
+        .search-container {
+            display: flex; /* Usa flexbox para alinhar itens */
+            justify-content: center; /* Centraliza horizontalmente */
+            margin-bottom: 20px; /* Adiciona um espaço abaixo da barra de pesquisa */
+        }
+        .search-container input {
+            width: 50%; /* Define a largura da barra de pesquisa */
+            padding: 10px; /* Define o preenchimento interno da barra de pesquisa */
+            border: 1px solid #ddd; /* Define a cor e a largura das bordas da barra de pesquisa */
+            border-radius: 4px; /* Define cantos arredondados para a barra de pesquisa */
+        }
         button {
             width: calc(100% - 22px); /* Define a largura dos botões */
             padding: 10px; /* Define o preenchimento interno dos botões */
@@ -61,6 +72,7 @@
         }
         th {
             background-color: #f2f2f2; /* Define a cor de fundo das células do cabeçalho */
+            cursor: pointer; /* Altera o cursor para uma mão ao passar sobre os cabeçalhos */
         }
         .edit-btn, .delete-btn {
             cursor: pointer; /* Altera o cursor para uma mão ao passar sobre os botões */
@@ -94,22 +106,44 @@
         .back-btn:hover {
             background-color: #357ab7; /* Altera a cor de fundo ao passar o cursor sobre os botões */
         }
+        /* Estilos para as mensagens */
+        .message-container {
+            margin-top: 20px;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        .success {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .error {
+            background-color: #e74c3c;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Clientes Cadastrados</h1>
+        <!-- Contêiner de pesquisa -->
+        <div class="search-container">
+            <input type="text" id="barraPesquisa" placeholder="Pesquisar por qualquer informação..."> <!-- Barra de pesquisa unificada -->
+        </div>
         <div id="clientesContainer">
             <!-- Tabela para exibir clientes cadastrados -->
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Nome</th>
-                        <th>Telefone</th>
-                        <th>CPF</th>
-                        <th>Visitas</th>
-                        <th id="acoesHeader">Ações</th>
+                        <th onclick="ordenarTabela('id')">ID</th> <!-- Cabeçalho da coluna ID com opção de ordenação -->
+                        <th onclick="ordenarTabela('nome')">Nome</th> <!-- Cabeçalho da coluna Nome com opção de ordenação -->
+                        <th onclick="ordenarTabela('telefone')">Telefone</th> <!-- Cabeçalho da coluna Telefone com opção de ordenação -->
+                        <th onclick="ordenarTabela('cpf')">CPF</th> <!-- Cabeçalho da coluna CPF com opção de ordenação -->
+                        <th onclick="ordenarTabela('visitas')">Visitas</th> <!-- Cabeçalho da coluna Visitas com opção de ordenação -->
+                        <th id="acoesHeader">Ações</th> <!-- Cabeçalho da coluna Ações -->
                     </tr>
                 </thead>
                 <tbody id="clientes">
@@ -118,6 +152,11 @@
         </div>
         <!-- Botão para voltar para a página inicial -->
         <button onclick="voltar()" class="back-btn">Voltar</button>
+        
+        <!-- Contêiner para as mensagens -->
+        <div class="message-container">
+            <div id="message" class="message"></div>
+        </div>
     </div>
 
     <script>
@@ -126,19 +165,30 @@
         
         document.getElementById('acoesHeader').style.display = isAdmin ? 'table-cell' : 'none'; // Exibe ou oculta a coluna de ações
 
+        let clientes = JSON.parse(localStorage.getItem('clientes')) || []; // Obtém a lista de clientes do localStorage ou inicializa um array vazio
+
+        function showMessage(type, text) {
+            const messageElement = document.getElementById('message');
+            messageElement.className = `message ${type}`;
+            messageElement.innerText = text;
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 3000);
+        }
+
         // Função para exibir os clientes cadastrados
-        function exibirClientes() {
-            const clientes = JSON.parse(localStorage.getItem('clientes')) || []; // Obtém a lista de clientes do localStorage ou inicializa um array vazio
+        function exibirClientes(filtrados = clientes) {
             const clientesList = document.getElementById('clientes'); // Obtém o elemento da tabela de clientes
             clientesList.innerHTML = ''; // Limpa o conteúdo da tabela
-            clientes.forEach((cliente, index) => { // Itera sobre cada cliente na lista
+            filtrados.forEach((cliente, index) => { // Itera sobre cada cliente na lista
                 const tr = document.createElement('tr'); // Cria uma nova linha na tabela
                 tr.innerHTML = `
-                    <td>${cliente.id}</td>
-                    <td>${cliente.nome}</td>
-                    <td>${cliente.telefone}</td>
-                    <td>${cliente.cpf}</td>
-                    <td>${cliente.visitas}</td>
+                    <td>${cliente.id}</td> <!-- Exibe o ID do cliente -->
+                    <td>${cliente.nome}</td> <!-- Exibe o nome do cliente -->
+                    <td>${cliente.telefone}</td> <!-- Exibe o telefone do cliente -->
+                    <td>${cliente.cpf || ''}</td> <!-- Exibe o CPF do cliente -->
+                    <td>${cliente.visitas}</td> <!-- Exibe o número de visitas do cliente -->
                     ${isAdmin ? `
                     <td>
                         <button class="edit-btn" onclick="editarCliente(${index})">Editar</button> <!-- Botão para editar o cliente -->
@@ -152,28 +202,72 @@
         // Função para remover um cliente
         function removerCliente(index) {
             if (confirm('Tem certeza que deseja remover este cliente?')) { // Exibe uma confirmação antes de remover o cliente
-                let clientes = JSON.parse(localStorage.getItem('clientes')) || []; // Obtém a lista de clientes do localStorage ou inicializa um array vazio
                 clientes.splice(index, 1); // Remove o cliente da lista
                 localStorage.setItem('clientes', JSON.stringify(clientes)); // Salva a lista atualizada no localStorage
                 exibirClientes(); // Atualiza a exibição dos clientes
+                showMessage('success', "Cliente removido com sucesso!");
             }
         }
 
         // Função para editar um cliente
         function editarCliente(index) {
-            let clientes = JSON.parse(localStorage.getItem('clientes')) || []; // Obtém a lista de clientes do localStorage ou inicializa um array vazio
             const cliente = clientes[index]; // Obtém os dados do cliente
             const nome = prompt("Editar Nome:", cliente.nome); // Solicita o novo nome
             const telefone = prompt("Editar Telefone:", cliente.telefone); // Solicita o novo telefone
-            const cpf = prompt("Editar CPF:", cliente.cpf); // Solicita o novo CPF
-            if (nome && telefone.length === 11 && (!cpf || (cpf === cliente.cpf || (validarCPF(cpf) && !clientes.some(c => c.cpf === cpf))))) {
+            const cpf = prompt("Editar CPF (opcional):", cliente.cpf || ''); // Solicita o novo CPF
+
+            if (nome && telefone.match(/^\(\d{2}\)\s\d{4,5}-\d{4}$/)) { // Verifica se o telefone está no formato correto
+                if (cpf && !validarCPF(cpf)) {
+                    showMessage('error', "CPF inválido.");
+                    return;
+                }
+
+                if (cpf && clientes.some((c, i) => c.cpf === cpf && i !== index)) {
+                    showMessage('error', "Este CPF já está cadastrado.");
+                    return;
+                }
+
                 clientes[index] = { ...cliente, nome, telefone, cpf }; // Atualiza os dados do cliente
                 localStorage.setItem('clientes', JSON.stringify(clientes)); // Salva a lista atualizada no localStorage
                 exibirClientes(); // Atualiza a exibição dos clientes
+                showMessage('success', "Cliente atualizado com sucesso!");
             } else {
-                alert("Por favor, insira dados válidos."); // Exibe uma mensagem de erro se os dados forem inválidos
+                showMessage('error', "Por favor, insira dados válidos."); // Exibe uma mensagem de erro se os dados forem inválidos
             }
         }
+
+        // Função para ordenar a tabela
+        function ordenarTabela(coluna) {
+            const ordem = document.querySelector(`th[onclick="ordenarTabela('${coluna}')"]`).getAttribute('data-ordem') || 'asc'; // Define a ordem de classificação
+            clientes.sort((a, b) => {
+                if (coluna === 'visitas') {
+                    return ordem === 'asc' ? a[coluna] - b[coluna] : b[coluna] - a[coluna]; // Ordena numericamente
+                } else {
+                    return ordem === 'asc' ? a[coluna].localeCompare(b[coluna]) : b[coluna].localeCompare(a[coluna]); // Ordena alfabeticamente
+                }
+            });
+            document.querySelector(`th[onclick="ordenarTabela('${coluna}')"]`).setAttribute('data-ordem', ordem === 'asc' ? 'desc' : 'asc'); // Alterna a ordem de classificação
+            exibirClientes(); // Atualiza a exibição dos clientes
+        }
+
+        // Função para filtrar os clientes com base na barra de pesquisa
+        function filtrarClientes() {
+            const query = document.getElementById('barraPesquisa').value.toLowerCase(); // Obtém o valor da barra de pesquisa
+
+            const filtrados = clientes.filter(cliente => {
+                return (
+                    cliente.nome.toLowerCase().includes(query) ||
+                    cliente.cpf.includes(query) ||
+                    cliente.telefone.includes(query) ||
+                    cliente.id.toLowerCase().includes(query)
+                );
+            });
+
+            exibirClientes(filtrados); // Atualiza a exibição dos clientes filtrados
+        }
+
+        // Adiciona evento de input para a barra de pesquisa
+        document.getElementById('barraPesquisa').addEventListener('input', filtrarClientes);
 
         // Função para validar o CPF
         function validarCPF(cpf) {
