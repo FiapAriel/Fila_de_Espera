@@ -34,6 +34,7 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             z-index: 1000;
         }
+        
 
         /* Estilo para o container principal */
         .container {
@@ -111,11 +112,12 @@
         <!-- Botões para navegar para outras páginas -->
         <button onclick="irParaCadastro()">Incluir Cliente na Fila</button> <!-- Botão para ir para a página de cadastro -->
         <button onclick="irParaFila()">Ver Fila de Espera</button> <!-- Botão para ir para a página da fila de espera -->
+        <button onclick="irParaHistorico()">Ver Histórico</button> <!-- Botão para ir para a página de histórico -->
     </div>
 
     <script>
         // Define a senha correta
-        const senhaCorreta = 'admin123'; // Variável que armazena a senha correta para acesso
+        const senhaCorreta = 'cl123'; // Variável que armazena a senha correta para acesso
 
         // Função para verificar a senha e redirecionar para a página de clientes cadastrados
         function verificarSenha() {
@@ -136,6 +138,11 @@
         function irParaFila() {
             window.location.href = "fila.html"; // Redireciona para a página da fila de espera
         }
+
+        // Função para redirecionar para a página do histórico        
+        function irParaHistorico() {
+    window.location.href = "historico.html"; // Redireciona para a página de histórico
+}
     </script>
 </body>
 </html>

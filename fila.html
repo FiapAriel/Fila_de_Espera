@@ -148,50 +148,87 @@
         }
 
         function removerCliente(index) {
-            if (confirm('Tem certeza que deseja remover este cliente da fila?')) {
-                fila.splice(index, 1);
-                localStorage.setItem('fila', JSON.stringify(fila));
-                atualizarFila();
-                showMessage('success', 'Cliente removido com sucesso.');
+    if (confirm('Tem certeza que deseja remover este cliente da fila?')) {
+        const cliente = fila.splice(index, 1)[0];
+
+        // Atualiza o histórico com a informação de cancelamento
+        let historicoFila = JSON.parse(localStorage.getItem('historicoFila')) || [];
+        historicoFila = historicoFila.map(item => {
+            if (item.nome === cliente.nome && item.horaEntrada === cliente.entrada && !item.horaChamada) {
+                return { ...item, horaChamada: 'Desistiu' }; // Marca como "Desistiu" ou "Cancelou"
             }
-        }
+            return item;
+        });
+        localStorage.setItem('historicoFila', JSON.stringify(historicoFila));
+
+        localStorage.setItem('fila', JSON.stringify(fila));
+        atualizarFila();
+        showMessage('success', 'Cliente removido com sucesso.');
+    }
+}
+
 
         function chamarCliente(index) {
-            const cliente = fila.splice(index, 1)[0];
-            const clienteCadastrado = clientes.find(c => c.telefone === cliente.telefone);
-            if (clienteCadastrado) {
-                clienteCadastrado.visitas = (clienteCadastrado.visitas || 0) + 1;
-                localStorage.setItem('clientes', JSON.stringify(clientes));
-            }
-            localStorage.setItem('fila', JSON.stringify(fila));
-            if (fila.length === 0) {
-                ordemGlobal = 0;
-            }
-            atualizarFila();
-            showMessage('success', 'Cliente chamado com sucesso.');
-        }
+    const cliente = fila.splice(index, 1)[0];
+    const clienteCadastrado = clientes.find(c => c.telefone === cliente.telefone);
+    const horaChamada = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}); // Obtém a hora de chamada
 
-        function atualizarFila() {
-            const filaList = document.getElementById('fila');
-            filaList.innerHTML = '';
-            fila.forEach((cliente, index) => {
-                const now = new Date();
-                const diff = Math.floor((now - new Date(cliente.entrada)) / 60000);
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${cliente.ordem}</td>
-                    <td>${capitalize(cliente.nome.split(' ')[0])}</td>
-                    <td>${cliente.pessoas}</td>
-                    <td>${cliente.pager}</td>
-                    <td>${diff} min</td>
-                    <td class="actions">
-                        <button class="call-btn" onclick="chamarCliente(${index})">Chamar</button>
-                        <button class="remove-btn" onclick="removerCliente(${index})">Remover</button>
-                    </td>
-                `;
-                filaList.appendChild(tr);
-            });
+    if (clienteCadastrado) {
+        clienteCadastrado.visitas = (clienteCadastrado.visitas || 0) + 1;
+        localStorage.setItem('clientes', JSON.stringify(clientes));
+    }
+
+    // Atualiza o histórico com a hora de chamada
+    let historicoFila = JSON.parse(localStorage.getItem('historicoFila')) || [];
+    historicoFila = historicoFila.map(item => {
+        if (item.nome === cliente.nome && item.horaEntrada === cliente.entrada) {
+            return { ...item, horaChamada: horaChamada }; // Atualiza com a hora de chamada
         }
+        return item;
+    });
+    localStorage.setItem('historicoFila', JSON.stringify(historicoFila));
+
+    localStorage.setItem('fila', JSON.stringify(fila));
+    if (fila.length === 0) {
+        ordemGlobal = 0;
+    }
+    atualizarFila();
+    showMessage('success', 'Cliente chamado com sucesso.');
+}
+
+
+
+
+function atualizarFila() {
+    const filaList = document.getElementById('fila');
+    filaList.innerHTML = '';
+    fila.forEach((cliente, index) => {
+        const now = new Date();
+        const [hours, minutes] = cliente.entrada.split(':').map(Number); // Extrai horas e minutos do horário armazenado
+        const entrada = new Date();
+        entrada.setHours(hours, minutes, 0, 0); // Define o horário de entrada no objeto Date atual
+        const diff = Math.floor((now - entrada) / 60000); // Calcula a diferença em minutos
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${cliente.ordem}</td>
+            <td>${capitalize(cliente.nome.split(' ')[0])}</td>
+            <td>${cliente.pessoas}</td>
+            <td>${cliente.pager}</td>
+            <td>${isNaN(diff) ? 'Erro no cálculo' : diff + ' min'}</td>
+            <td class="actions">
+                <button class="call-btn" onclick="chamarCliente(${index})">Chamar</button>
+                <button class="remove-btn" onclick="removerCliente(${index})">Remover</button>
+            </td>
+        `;
+        filaList.appendChild(tr);
+    });
+}
+
+
+
+
+
 
         function ordenarTabela(coluna) {
             const ordem = document.querySelector(`th[onclick="ordenarTabela('${coluna}')"]`).getAttribute('data-ordem') || 'asc';

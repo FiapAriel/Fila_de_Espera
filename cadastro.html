@@ -205,41 +205,60 @@
 
         // Função para adicionar um cliente à fila de espera
         function adicionarFila() {
-            const numeroPessoas = document.getElementById('pessoas').value; // Obtém o valor do campo de número de pessoas
-            const pager = document.getElementById('pager').value; // Obtém o valor do campo de pager
+    const numeroPessoas = document.getElementById('pessoas').value;
+    const pager = document.getElementById('pager').value;
+    const horaEntrada = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}); // Armazena apenas o horário
 
-            // Verifica se o cliente ou o pager já estão na fila
-            const clienteNaFila = fila.find(cliente => cliente.telefone === clienteAtual.telefone);
-            const pagerNaFila = fila.find(cliente => cliente.pager === pager);
+    const clienteNaFila = fila.find(cliente => cliente.telefone === clienteAtual.telefone);
+    const pagerNaFila = fila.find(cliente => cliente.pager === pager);
 
-            if (clienteNaFila) {
-                showMessage('error', "Este cliente já está na fila."); // Exibe mensagem de erro se o cliente já estiver na fila
-                return;
-            }
+    if (clienteNaFila) {
+        showMessage('error', "Este cliente já está na fila.");
+        return;
+    }
 
-            if (pagerNaFila) {
-                showMessage('error', "Este pager já está em uso."); // Exibe mensagem de erro se o pager já estiver em uso
-                return;
-            }
+    if (pagerNaFila) {
+        showMessage('error', "Este pager já está em uso.");
+        return;
+    }
 
-            if (numeroPessoas && pager) {
-                // Adiciona o cliente à fila
-                fila.push({
-                    ...clienteAtual, // Inclui os dados do cliente atual
-                    pessoas: numeroPessoas, // Define o número de pessoas
-                    pager: pager // Define o pager
-                });
-                localStorage.setItem('fila', JSON.stringify(fila)); // Salva a fila no localStorage
+    if (numeroPessoas && pager) {
+        // Determina a nova ordem de chegada baseada no maior valor existente na fila
+        const novaOrdem = fila.length > 0 ? Math.max(...fila.map(cliente => cliente.ordem)) + 1 : 1;
 
-                // Limpa os campos de entrada e exibe mensagem de sucesso
-                document.getElementById('pessoas').value = '';
-                document.getElementById('pager').value = '';
-                showMessage('success', "Cliente adicionado à fila com sucesso!");
-                window.location.href = "fila.html"; // Redireciona para a página da fila
-            } else {
-                showMessage('error', "Por favor, preencha todos os campos."); // Exibe mensagem de erro se algum campo obrigatório estiver vazio
-            }
-        }
+        fila.push({
+            ...clienteAtual,
+            pessoas: numeroPessoas,
+            pager: pager,
+            entrada: horaEntrada, // Salvando apenas o horário de entrada
+            ordem: novaOrdem // Define a ordem de chegada com base no maior valor existente
+        });
+        localStorage.setItem('fila', JSON.stringify(fila));
+
+        // Adiciona ao histórico
+        let historicoFila = JSON.parse(localStorage.getItem('historicoFila')) || [];
+        historicoFila.push({
+            nome: clienteAtual.nome,
+            pessoas: numeroPessoas,
+            horaEntrada: horaEntrada, // Salvando apenas o horário de entrada no histórico
+            horaChamada: '' // Hora de chamada será atualizada no `fila.html`
+        });
+        localStorage.setItem('historicoFila', JSON.stringify(historicoFila));
+
+        document.getElementById('pessoas').value = '';
+        document.getElementById('pager').value = '';
+        showMessage('success', "Cliente adicionado à fila com sucesso!");
+        window.location.href = "fila.html";
+    } else {
+        showMessage('error', "Por favor, preencha todos os campos.");
+    }
+}
+
+
+
+
+
+
 
         // Função para gerar um ID único
         function gerarIdUnico() {
