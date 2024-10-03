@@ -291,6 +291,23 @@
             window.location.href = "index.html";
         }
 
+        // Adiciona navegação com Enter entre os inputs
+        document.addEventListener('DOMContentLoaded', function() { // Aguarda o carregamento do DOM
+            const inputs = document.querySelectorAll('input'); // Seleciona todos os inputs
+            inputs.forEach((input, index) => {
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') { // Detecta se a tecla pressionada é Enter
+                        event.preventDefault(); // Evita o comportamento padrão do Enter
+                        if (index < inputs.length - 1) {
+                            inputs[index + 1].focus(); // Move o foco para o próximo campo
+                        } else {
+                            showMessage('success', "Finalizado!"); // Mostra uma mensagem quando o último campo for alcançado
+                        }
+                    }
+                });
+            });
+        });
+
         // Atualiza a exibição dos clientes quando a página é carregada
         window.onload = exibirClientes;
     </script>

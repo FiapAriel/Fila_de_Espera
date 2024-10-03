@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -104,6 +104,76 @@
             background-color: #e74c3c;
             color: white;
         }
+
+        /* Estilo do formulário de edição */
+        /* Estilo do formulário de edição */
+/* Estilo do formulário de edição */
+#editarForm {
+    display: none; /* O formulário é escondido por padrão */
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 300px; /* Diminuído o tamanho máximo do formulário */
+    margin: 20px auto;
+    text-align: left;
+}
+
+#editarForm label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+#editarForm input {
+    width: 100%; /* Agora os inputs ocupam 100% da largura disponível */
+    padding: 5px; /* Mantido o padding compacto */
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+#editarForm .button-group {
+    display: flex;
+    justify-content: space-between;
+}
+
+#editarForm button {
+    width: 48%; /* Cada botão ocupa 48% para ficar alinhado */
+    padding: 10px;
+    margin: 5px 0;
+    border: none;
+    border-radius: 4px;
+    background-color: #4a90e2;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#editarForm button:hover {
+    background-color: #357ab7;
+}
+
+#editarForm button:last-child {
+    background-color: #e74c3c;
+}
+
+#editarForm button:last-child:hover {
+    background-color: #c0392b;
+}
+
+/* Efeito de foco nos inputs */
+#editarForm input:focus {
+    border-color: #4a90e2;
+    outline: none;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+}
+
+
     </style>
 </head>
 <body>
@@ -132,10 +202,45 @@
         <button onclick="voltar()">Voltar</button>
     </div>
 
+    <!-- Formulário de edição -->
+    <div id="editarForm">
+      <label for="editNumPessoas">Número de Pessoas:</label>
+      <input type="number" id="editNumPessoas" name="editNumPessoas">
+      <label for="editPager">Número do Pager:</label>
+      <input type="text" id="editPager" name="editPager">
+      <button onclick="salvarEdicao()">Salvar</button>
+      <button onclick="cancelarEdicao()">Cancelar</button>
+    </div>
+
     <script>
         let fila = JSON.parse(localStorage.getItem('fila')) || [];
         let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
         let ordemGlobal = fila.length > 0 ? Math.max(...fila.map(c => c.ordem || 0)) : 0;
+        let clienteAtual = ''; // Usado para rastrear o cliente que está sendo editado
+
+        document.addEventListener('DOMContentLoaded', function() {
+    // Seleciona todos os inputs dentro do formulário de edição
+    const inputs = document.querySelectorAll('#editarForm input');
+
+    // Adiciona um evento de "keydown" para detectar o pressionamento da tecla Enter
+    inputs.forEach((input, index) => {
+        input.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Impede o comportamento padrão do Enter
+                
+                // Se não for o último campo, move o foco para o próximo input
+                if (index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                } else {
+                    // Se for o último campo, chama a função de salvar
+                    salvarEdicao();
+                }
+            }
+        });
+    });
+});
+
+
 
         function showMessage(type, text) {
             const messageElement = document.getElementById('message');
@@ -148,92 +253,80 @@
         }
 
         function removerCliente(index) {
-    if (confirm('Tem certeza que deseja remover este cliente da fila?')) {
-        const cliente = fila.splice(index, 1)[0];
-
-        // Atualiza o histórico com a informação de cancelamento
-        let historicoFila = JSON.parse(localStorage.getItem('historicoFila')) || [];
-        historicoFila = historicoFila.map(item => {
-            if (item.nome === cliente.nome && item.horaEntrada === cliente.entrada && !item.horaChamada) {
-                return { ...item, horaChamada: 'Desistiu' }; // Marca como "Desistiu" ou "Cancelou"
+            if (confirm('Tem certeza que deseja remover este cliente da fila?')) {
+                const cliente = fila.splice(index, 1)[0];
+                let historicoFila = JSON.parse(localStorage.getItem('historicoFila')) || [];
+                historicoFila = historicoFila.map(item => {
+                    if (item.nome === cliente.nome && item.horaEntrada === cliente.entrada && !item.horaChamada) {
+                        return { ...item, horaChamada: 'Desistiu' };
+                    }
+                    return item;
+                });
+                localStorage.setItem('historicoFila', JSON.stringify(historicoFila));
+                localStorage.setItem('fila', JSON.stringify(fila));
+                atualizarFila();
+                showMessage('success', 'Cliente removido com sucesso.');
             }
-            return item;
-        });
-        localStorage.setItem('historicoFila', JSON.stringify(historicoFila));
-
-        localStorage.setItem('fila', JSON.stringify(fila));
-        atualizarFila();
-        showMessage('success', 'Cliente removido com sucesso.');
-    }
-}
-
+        }
 
         function chamarCliente(index) {
-    const cliente = fila.splice(index, 1)[0];
-    const clienteCadastrado = clientes.find(c => c.telefone === cliente.telefone);
-    const horaChamada = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}); // Obtém a hora de chamada
+            const cliente = fila.splice(index, 1)[0];
+            const clienteCadastrado = clientes.find(c => c.telefone === cliente.telefone);
+            const horaChamada = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
 
-    if (clienteCadastrado) {
-        clienteCadastrado.visitas = (clienteCadastrado.visitas || 0) + 1;
-        localStorage.setItem('clientes', JSON.stringify(clientes));
-    }
+            if (clienteCadastrado) {
+                clienteCadastrado.visitas = (clienteCadastrado.visitas || 0) + 1;
+                localStorage.setItem('clientes', JSON.stringify(clientes));
+            }
 
-    // Atualiza o histórico com a hora de chamada
-    let historicoFila = JSON.parse(localStorage.getItem('historicoFila')) || [];
-    historicoFila = historicoFila.map(item => {
-        if (item.nome === cliente.nome && item.horaEntrada === cliente.entrada) {
-            return { ...item, horaChamada: horaChamada }; // Atualiza com a hora de chamada
+            let historicoFila = JSON.parse(localStorage.getItem('historicoFila')) || [];
+            historicoFila = historicoFila.map(item => {
+                if (item.nome === cliente.nome && item.horaEntrada === cliente.entrada) {
+                    return { ...item, horaChamada: horaChamada };
+                }
+                return item;
+            });
+            localStorage.setItem('historicoFila', JSON.stringify(historicoFila));
+
+            localStorage.setItem('fila', JSON.stringify(fila));
+            if (fila.length === 0) {
+                ordemGlobal = 0;
+            }
+            atualizarFila();
+            showMessage('success', 'Cliente chamado com sucesso.');
         }
-        return item;
-    });
-    localStorage.setItem('historicoFila', JSON.stringify(historicoFila));
 
-    localStorage.setItem('fila', JSON.stringify(fila));
-    if (fila.length === 0) {
-        ordemGlobal = 0;
-    }
-    atualizarFila();
-    showMessage('success', 'Cliente chamado com sucesso.');
-}
+        function atualizarFila() {
+            const filaList = document.getElementById('fila');
+            filaList.innerHTML = '';
+            fila.forEach((cliente, index) => {
+                const now = new Date();
+                const [hours, minutes] = cliente.entrada.split(':').map(Number);
+                const entrada = new Date();
+                entrada.setHours(hours, minutes, 0, 0);
+                const diff = Math.floor((now - entrada) / 60000);
 
-
-
-
-function atualizarFila() {
-    const filaList = document.getElementById('fila');
-    filaList.innerHTML = '';
-    fila.forEach((cliente, index) => {
-        const now = new Date();
-        const [hours, minutes] = cliente.entrada.split(':').map(Number); // Extrai horas e minutos do horário armazenado
-        const entrada = new Date();
-        entrada.setHours(hours, minutes, 0, 0); // Define o horário de entrada no objeto Date atual
-        const diff = Math.floor((now - entrada) / 60000); // Calcula a diferença em minutos
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${cliente.ordem}</td>
-            <td>${capitalize(cliente.nome.split(' ')[0])}</td>
-            <td>${cliente.pessoas}</td>
-            <td>${cliente.pager}</td>
-            <td>${isNaN(diff) ? 'Erro no cálculo' : diff + ' min'}</td>
-            <td class="actions">
-                <button class="call-btn" onclick="chamarCliente(${index})">Chamar</button>
-                <button class="remove-btn" onclick="removerCliente(${index})">Remover</button>
-            </td>
-        `;
-        filaList.appendChild(tr);
-    });
-}
-
-
-
-
-
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${cliente.ordem}</td>
+                    <td>${capitalize(cliente.nome.split(' ')[0])}</td>
+                    <td>${cliente.pessoas}</td>
+                    <td>${cliente.pager}</td>
+                    <td>${isNaN(diff) ? 'Erro no cálculo' : diff + ' min'}</td>
+                    <td class="actions">
+                        <button class="call-btn" onclick="chamarCliente(${index})">Chamar</button>
+                        <button class="remove-btn" onclick="removerCliente(${index})">Remover</button>
+                        <button class="edit-btn" onclick="editarCliente(${index})">Editar</button>
+                    </td>
+                `;
+                filaList.appendChild(tr);
+            });
+        }
 
         function ordenarTabela(coluna) {
             const ordem = document.querySelector(`th[onclick="ordenarTabela('${coluna}')"]`).getAttribute('data-ordem') || 'asc';
             fila.sort((a, b) => {
-                if (coluna === 'pessoas' || coluna === 'tempo' || coluna === 'ordem') {
+                if (coluna === 'pessoas' || coluna === 'tempo' || coluna === 'ordem' || coluna === 'pager') {
                     return ordem === 'asc' ? a[coluna] - b[coluna] : b[coluna] - a[coluna];
                 } else {
                     return ordem === 'asc' ? a[coluna].localeCompare(b[coluna]) : b[coluna].localeCompare(a[coluna]);
@@ -241,6 +334,39 @@ function atualizarFila() {
             });
             document.querySelector(`th[onclick="ordenarTabela('${coluna}')"]`).setAttribute('data-ordem', ordem === 'asc' ? 'desc' : 'asc');
             atualizarFila();
+        }
+
+        function editarCliente(index) {
+            clienteAtual = index;
+            const cliente = fila[index];
+            document.getElementById('editNumPessoas').value = cliente.pessoas;
+            document.getElementById('editPager').value = cliente.pager;
+            document.getElementById('editarForm').style.display = 'block';
+        }
+
+        function salvarEdicao() {
+            const novoNumPessoas = document.getElementById('editNumPessoas').value;
+            const novoPager = document.getElementById('editPager').value;
+
+            // Verifica se o pager já está em uso por outro cliente
+            const pagerEmUso = fila.some((cliente, index) => cliente.pager === novoPager && index !== clienteAtual);
+            
+            if (pagerEmUso) {
+                showMessage('error', 'Este pager já está em uso por outro cliente.');
+                return; // Interrompe a execução se o pager estiver em uso
+            }
+
+            // Atualiza o cliente com os novos dados
+            fila[clienteAtual].pessoas = novoNumPessoas;
+            fila[clienteAtual].pager = novoPager;
+            localStorage.setItem('fila', JSON.stringify(fila));
+            document.getElementById('editarForm').style.display = 'none';
+            atualizarFila();
+            showMessage('success', 'Cliente atualizado com sucesso.');
+        }
+
+        function cancelarEdicao() {
+            document.getElementById('editarForm').style.display = 'none';
         }
 
         function irParaCadastro() {
